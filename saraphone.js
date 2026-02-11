@@ -26,6 +26,7 @@
    Danilo Volpinari
    Luca Mularoni
  */
+// import { loginAgent } from './api.js';
 
 'use strict';
 
@@ -51,6 +52,30 @@ var oldext = false;
 var gotopanel = false;
 var isIncomingCall = false;
 var isOutboundCall = false;
+
+const BACKEND_URL = "http://localhost:8005" 
+
+async function loginAgent(username, password) {
+  try {
+    const response = await fetch(`${BACKEND_URL}/api/dialer/agent/login/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ username, password }),
+    });
+
+    if (!response.ok) {
+      return null; // Return null for HTTP errors (e.g., 401, 404)
+    }
+
+    const data = await response.json();
+    return data; // Return the response data (e.g., { extension: "101" })
+  } catch (error) {
+    console.error('Login error:', error);
+    return null; // Return null for network errors
+  }
+}
 
 var dtmf_options = {
   'duration': 100,
@@ -384,6 +409,7 @@ $("#anscallbtn").click(function() {
             }
         }
     });
+    console.log('All Headers:', incomingsession.request.headers);
     console.log('answered');
 
     $("#isIncomingcall").hide();
@@ -856,8 +882,8 @@ function resetOptionsTimer() {
 */
 }
 
-function init() {
-
+async function init() {
+    
     var nameDomain;
     var nameProxy;
     var uri;
@@ -880,15 +906,30 @@ function init() {
 
     login = $("#login").val();
     password = $("#passwd").val();
+    var extension;
+    var fs_password
+    var agent_id
 
-    uri = login + "@" + nameDomain;
+    const result = await loginAgent(login, password);
+    if (result) {
+      extension = result.extension;
+    //   var uri = extension + "@" + nameDomain;
+      fs_password = result.password;
+      agent_id = result.id;  
+    } else {
+      console.log("Login failed");
+      return
+    }
 
-    //console.error("uri: " + uri);
+    console.log(extension, fs_password, agent_id);
+    uri = extension + "@" + nameDomain;
+
+    console.error("uri: " + uri);
 
     ua = new SIP.UA({
         wsServers: which_server,
         uri: uri,
-        password: password,
+        password: fs_password,
         userAgentString: 'SIP.js/0.7.8 SaraPhone 04',
         traceSip: true,
         displayName: yourname,
