@@ -63,12 +63,20 @@ var audio_silence = new Audio("wav/silence.wav");
     <div style="display: block; background-color: black;" id="hideAll"> 
 	      <h2>Wait please...</h2> 
     </div> 
-    <div align="center"> 
+    <!-- <div > -->
+        <div style="
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 50%;
+    height: 100vh;
+    margin-bottom: 10px;
+"> 
     
-        <div align="center" class="form-signin"> 
+        <div align="left" class="form-signin"> 
             <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12" style="margin-bottom: 10px;" > 
                 <div class="col-8 col-sm-8 col-md-8 col-lg-8 col-xl-8" > 
-                    <div align="center" class="form-signin"> 
+                    <div align="left" class="form-signin"> 
                         <div align="center" id="signin" class="form-signin-content"> 
                             <div class="row"> 
                                 <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12" > 
@@ -472,6 +480,108 @@ var audio_silence = new Audio("wav/silence.wav");
             </div> 
         </div> 
     </div> 
+    <div style="
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 50%;
+    height: 100vh;
+    margin-bottom: 10px;
+"> 
+<div class="col-6 col-sm-6 col-md-6 col-lg-6 col-xl-6" style="padding-left: 10px;">
+                <div align="left" id="customerDataCard" class="form-signin-content" style="background-color: #2a2a2a; border-radius: 15px; padding: 20px; max-width: 100%; margin: 0;">
+                        <h3 style="text-align: left; color: #ffffff; margin-bottom: 20px;">Customer Information</h3>
+                        <form id="customerDataForm" style="text-align: left;">
+                            <div class="row">
+                                <div class="col-6 col-sm-6 col-md-6 col-lg-6 col-xl-6" style="margin-bottom: 15px;">
+                                    <label for="phone_number" style="display: block; margin-bottom: 5px; color: #ffffff;">Phone Number</label>
+                                    <input type="text" id="phone_number" class="form-control" readonly style="background-color: #444; color: #ffffff; border: 1px solid #555;">
+                                </div>
+                                <div class="col-6 col-sm-6 col-md-6 col-lg-6 col-xl-6" style="margin-bottom: 15px;">
+                                    <label for="customer_name" style="display: block; margin-bottom: 5px; color: #ffffff;">Customer Name</label>
+                                    <input type="text" id="customer_name" class="form-control" style="background-color: #444; color: #ffffff; border: 1px solid #555;">
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-6 col-sm-6 col-md-6 col-lg-6 col-xl-6" style="margin-bottom: 15px;">
+                                    <label for="city" style="display: block; margin-bottom: 5px; color: #ffffff;">City</label>
+                                    <input type="text" id="city" class="form-control" style="background-color: #444; color: #ffffff; border: 1px solid #555;">
+                                </div>
+                                <div class="col-6 col-sm-6 col-md-6 col-lg-6 col-xl-6" style="margin-bottom: 15px;">
+                                    <label for="customer_segment" style="display: block; margin-bottom: 5px; color: #ffffff;">Customer Segment</label>
+                                    <input type="text" id="customer_segment" class="form-control" readonly style="background-color: #444; color: #ffffff; border: 1px solid #555;">
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-6 col-sm-6 col-md-6 col-lg-6 col-xl-6" style="margin-bottom: 15px;">
+                                    <label for="month_gmv" style="display: block; margin-bottom: 5px; color: #ffffff;">Month GMV</label>
+                                    <input type="text" id="month_gmv" class="form-control" readonly style="background-color: #444; color: #ffffff; border: 1px solid #555;">
+                                </div>
+                                <div class="col-6 col-sm-6 col-md-6 col-lg-6 col-xl-6" style="margin-bottom: 15px;">
+                                    <label for="overall_gmv" style="display: block; margin-bottom: 5px; color: #ffffff;">Overall GMV</label>
+                                    <input type="text" id="overall_gmv" class="form-control" readonly style="background-color: #444; color: #ffffff; border: 1px solid #555;">
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-6 col-sm-6 col-md-6 col-lg-6 col-xl-6" style="margin-bottom: 15px;">
+                                    <label for="last_call_date" style="display: block; margin-bottom: 5px; color: #ffffff;">Last Call Date</label>
+                                    <input type="text" id="last_call_date" class="form-control" readonly style="background-color: #444; color: #ffffff; border: 1px solid #555;">
+                                </div>
+                                <div class="col-6 col-sm-6 col-md-6 col-lg-6 col-xl-6" style="margin-bottom: 15px;">
+                                    <label for="last_order_date" style="display: block; margin-bottom: 5px; color: #ffffff;">Last Order Date</label>
+                                    <input type="text" id="last_order_date" class="form-control" readonly style="background-color: #444; color: #ffffff; border: 1px solid #555;">
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-6 col-sm-6 col-md-6 col-lg-6 col-xl-6" style="margin-bottom: 15px;">
+                                    <label for="last_order_item" style="display: block; margin-bottom: 5px; color: #ffffff;">Last Order Item</label>
+                                    <input type="text" id="last_order_item" class="form-control" readonly style="background-color: #444; color: #ffffff; border: 1px solid #555;">
+                                </div>
+                                <div class="col-6 col-sm-6 col-md-6 col-lg-6 col-xl-6" style="margin-bottom: 15px;">
+                                    <label for="last_order_amount" style="display: block; margin-bottom: 5px; color: #ffffff;">Last Order Amount</label>
+                                    <input type="text" id="last_order_amount" class="form-control" readonly style="background-color: #444; color: #ffffff; border: 1px solid #555;">
+                                </div>
+                            </div>
+                            
+                            <div class="row" style="margin-bottom: 20px;">
+                                <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+                                    <h4 style="color: #ffffff; margin-bottom: 15px;">Status</h4>
+                                    <div style="display: flex; flex-direction: column; gap: 10px;">
+                                        <div style="display: flex; align-items: center;">
+                                            <input type="checkbox" id="active_shop" style="margin-right: 10px; cursor: pointer;">
+                                            <label for="active_shop" style="color: #ffffff; cursor: pointer;">Active Shop</label>
+                                        </div>
+                                        <div style="display: flex; align-items: center;">
+                                            <input type="checkbox" id="inactive_shop" style="margin-right: 10px; cursor: pointer;">
+                                            <label for="inactive_shop" style="color: #ffffff; cursor: pointer;">Inactive Shop</label>
+                                        </div>
+                                        <div style="display: flex; align-items: center;">
+                                            <input type="checkbox" id="personal_use" style="margin-right: 10px; cursor: pointer;">
+                                            <label for="personal_use" style="color: #ffffff; cursor: pointer;">Personal Use</label>
+                                        </div>
+                                        <div style="display: flex; align-items: center;">
+                                            <input type="checkbox" id="testing_purpose" style="margin-right: 10px; cursor: pointer;">
+                                            <label for="testing_purpose" style="color: #ffffff; cursor: pointer;">Testing Purpose</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12" style="text-align: left;">
+                                    <button type="submit" class="btn btn-sm btn-primary btn-success" style="margin-right: 10px; width: 100px;">Submit</button>
+                                    <button type="button" id="closeCustomerDataBtn" class="btn btn-sm btn-primary btn-danger" style="width: 100px;">Close</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+            </div>
+</div>
+
     <script type="text/javascript" src="js/adapter.js"></script> 
     <script type="text/javascript" src="js/jquery.min.js"></script> 
     <script type="text/javascript" src="js/sip.js"></script> 

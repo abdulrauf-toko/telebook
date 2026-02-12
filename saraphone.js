@@ -440,6 +440,7 @@ $("#rejcallbtn").click(function() {
     $("#calling_input").val("");
     span.innerText = "...";
     incomingsession = null;
+    document.getElementById("customerDataForm").reset();
 });
 
 
@@ -467,9 +468,40 @@ function handleInvite(s) {
 	    }
             span.innerText = "CALL FROM: " + txt.textContent + " (" + s.remoteIdentity.uri.user.toString() + ")";
             incomingsession = s;
+            const rawHeaders = incomingsession.request.headers;
+            const callData = {};
+                
+            // 2. Loop through and extract values
+            Object.keys(rawHeaders).forEach(key => {
+                // We take the first element [0] and its 'raw' property
+                if (rawHeaders[key] && rawHeaders[key].length > 0) {
+                    callData[key] = rawHeaders[key][0].raw;
+                }
+            });
+            $("#customerDataCard").show()
+
             $("#isIncomingcall").show();
             $("#isNotIncomingcall").hide();
             incomingsession.once('cancel', onCancelled.bind(incomingsession));
+            const fieldMapping = {
+                'X-Phone-Number': 'phone_number',
+                'X-Customer-Name': 'customer_name',
+                'X-City': 'city',
+                'X-Customer-Segment': 'customer_segment',
+                'X-Month-GMV': 'month_gmv',
+                'X-Overall-GMV': 'overall_gmv',
+                'X-Last-Call-Date': 'last_call_date',
+                'X-Last-Order-Item': 'last_order_item',
+                'X-Last-Order-Amount': 'last_order_amount'
+            };
+        
+            // 3. Fill the fields automatically
+            Object.keys(fieldMapping).forEach(headerName => {
+                const inputId = fieldMapping[headerName];
+                const value = callData[headerName] || ""; // Default to empty string
+
+                $(`#${inputId}`).val(value);
+            });
 
             if (isIOS) {
                 //do nothing
@@ -1185,3 +1217,31 @@ function setupCacheHandler() {
         $("#" + key).change(function(e) {localStorage.setItem("saraphone." + e.target.id, e.target.value);});
     }
 }
+// Customer Data Card handlers
+$("#customerDataForm").submit(function(e) {
+    e.preventDefault();
+    // Handle form submission here
+    var formData = {
+        phone_number: document.getElementById("phone_number").value,
+        customer_name: document.getElementById("customer_name").value,
+        city: document.getElementById("city").value,
+        customer_segment: document.getElementById("customer_segment").value,
+        month_gmv: document.getElementById("month_gmv").value,
+        overall_gmv: document.getElementById("overall_gmv").value,
+        last_call_date: document.getElementById("last_call_date").value,
+        last_order_date: document.getElementById("last_order_date").value,
+        last_order_item: document.getElementById("last_order_item").value,
+        last_order_amount: document.getElementById("last_order_amount").value,
+        active_shop: document.getElementById("active_shop").checked,
+        inactive_shop: document.getElementById("inactive_shop").checked,
+        personal_use: document.getElementById("personal_use").checked,
+        testing_purpose: document.getElementById("testing_purpose").checked
+    };
+    console.log("Customer Data Form Submitted:", formData);
+    alert("Form submitted successfully!");
+});
+
+$("#closeCustomerDataBtn").click(function() {
+    // Reset form when close is clicked
+    document.getElementById("customerDataForm").reset();
+});
