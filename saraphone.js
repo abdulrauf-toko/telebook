@@ -914,6 +914,45 @@ function resetOptionsTimer() {
 */
 }
 
+function populateUserRows(data) {
+    const table = document.getElementById('config');
+    let count = 1;
+    data.forEach(user => {
+        // Template for the new rows
+        const rows = `
+            <tr> 
+                <td><input style="background-color: black;" size=25 id="pres${count}" value="${user.extension}" /></td><td>&nbsp;BLF${count}&nbsp;</td>
+            </tr> 
+            <tr> 
+                <td><input style="background-color: black;" size=25 id="pres${count}_label" value="${user.user__username}" /></td><td>&nbsp;BLF${count}&nbsp;Label</td>
+            </tr>
+            `;
+        count += 1;
+        // Append the rows to the end of the table
+        //// <tr><td colspan="2"><hr style="border-color: #333;"></td></tr>
+        table.insertAdjacentHTML('beforeend', rows);
+    });
+}
+
+function populatePresenceSpans(data) {
+    let count = 1;
+    data.forEach(user => {
+        // Find the span with id="ispresent1", "ispresent2", etc.
+        const span = document.getElementById(`ispresent${count}`);
+        
+        if (span) {
+            // Set the content. You can change 'Available' to 
+            // whatever status value you have (e.g., user.status)
+            span.textContent = user.user__username
+            
+            // Optional: Add a class for styling (green for online, red for offline)
+            // span.style.color = user.is_online ? "#00FF00" : "#FF0000";
+        }
+        
+        count += 1;
+    });
+}
+
 async function init() {
     
     var nameDomain;
@@ -939,8 +978,9 @@ async function init() {
     login = $("#login").val();
     password = $("#passwd").val();
     var extension;
-    var fs_password
-    var agent_id
+    var fs_password;
+    var agent_id;
+    var userData;
 
     const result = await loginAgent(login, password);
     if (result) {
@@ -948,15 +988,21 @@ async function init() {
     //   var uri = extension + "@" + nameDomain;
       fs_password = result.password;
       agent_id = result.id;  
+      userData = result.agents_info;
     } else {
       console.log("Login failed");
       return
     }
 
+
+    populateUserRows(userData);
+    populatePresenceSpans(userData)
+
     console.log(extension, fs_password, agent_id);
     uri = extension + "@" + nameDomain;
 
     console.error("uri: " + uri);
+    
 
     ua = new SIP.UA({
         wsServers: which_server,
