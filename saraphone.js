@@ -52,6 +52,8 @@ var oldext = false;
 var gotopanel = false;
 var isIncomingCall = false;
 var isOutboundCall = false;
+var globalLogin = "";
+var globalPassword = "";
 
 const BACKEND_URL = "http://localhost:8005" 
 
@@ -73,6 +75,27 @@ async function loginAgent(username, password) {
     return data; // Return the response data (e.g., { extension: "101" })
   } catch (error) {
     console.error('Login error:', error);
+    return null; // Return null for network errors
+  }
+}
+
+async function logoutAgent() {
+  try {
+    const response = await fetch(`${BACKEND_URL}/api/dialer/agent/logout/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      return null; // Return null for HTTP errors (e.g., 401, 404)
+    }
+
+    const data = await response.json();
+    return data; // Return the response data
+  } catch (error) {
+    console.error('Logout error:', error);
     return null; // Return null for network errors
   }
 }
@@ -355,7 +378,8 @@ $("#gotopanel1").click(function() {
     window.location.assign('/');
 });
 
-$("#gotopanel2").click(function() {
+$("#gotopanel2").click(async function() {
+    await logoutAgent()
     gotopanel = true;
     console.error("GOTOPANEL2");
     window.location.assign('/');
@@ -1096,7 +1120,9 @@ async function init() {
     });
 
     ua.once('registered', onRegistered.bind(cur_call));
-    ua.on('unregistered', function() {
+    ua.on('unregistered', async function() {
+        // Call logout API
+        await logoutAgent();
         console.error('UNREGISTERED');
         if (gotopanel == false){
 		tempAlert("- UNREGISTERED - UNREGISTERED - UNREGISTERED - UNREGISTERED - UNREGISTERED - UNREGISTERED - UNREGISTERED - UNREGISTERED - UNREGISTERED - UNREGISTERED - UNREGISTERED - UNREGISTERED - UNREGISTERED - UNREGISTERED - UNREGISTERED - UNREGISTERED - UNREGISTERED - UNREGISTERED - UNREGISTERED - UNREGISTERED - UNREGISTERED - UNREGISTERED - UNREGISTERED - UNREGISTERED - UNREGISTERED - UNREGISTERED - ",3000);
