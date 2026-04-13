@@ -55,7 +55,7 @@ var isOutboundCall = false;
 var globalLogin = "";
 var globalPassword = "";
 
-const BACKEND_URL = "http://localhost:8005" 
+const BACKEND_URL = "https://192.168.0.25/api" 
 
 async function loginAgent(username, password) {
   try {
