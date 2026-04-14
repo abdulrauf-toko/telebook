@@ -54,8 +54,174 @@ var isIncomingCall = false;
 var isOutboundCall = false;
 var globalLogin = "";
 var globalPassword = "";
+var ringingAudio = new Audio('mp3/classical_tone.mp3');
+var callStartTime = null;
+var callTimerInterval = null;
 
 const BACKEND_URL = "https://192.168.0.25/api" 
+const WS_URL = "wss://192.168.0.25/ws/agent";
+
+let socket = null;
+
+function connectAgentWebSocket(agentId) {
+    socket = new WebSocket(`${WS_URL}/${agentId}/`);
+
+    socket.onopen = () => {
+        console.log(`[WS] Connected as agent ${agentId}`);
+    };
+
+    socket.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        console.log(`[WS] Event received:`, data);
+        handleAgentEvent(data);
+    };
+
+    socket.onclose = (event) => {
+        console.log(`[WS] Disconnected: ${event.code}`);
+        // Auto reconnect after 3 seconds
+        setTimeout(() => connectAgentWebSocket(agentId), 3000);
+    };
+
+    socket.onerror = (error) => {
+        console.error(`[WS] Error:`, error);
+    };
+}
+
+function handleAgentEvent(data) {
+    switch (data.event) {
+        case "ringing":
+            if (cur_call) {
+                return;
+            }
+
+            console.log("Call ringing:");
+            displayCallStatus("ringing");
+            break;
+        case "call_ended":
+            console.log("Call ended:", data.data);
+            if (!cur_call) {
+                displayCallStatus("ended");
+            }
+            break;
+        case "call_connected":
+            console.log("Call connected:", data.data);
+            hideCallStatus();
+            break;
+        default:
+            console.log("Unknown event:", data);
+    }
+}
+
+function disconnectAgentWebSocket() {
+    if (socket) {
+        socket.close();
+        socket = null;
+    }
+}
+
+function displayCallStatus(status) {
+    function tryDisplay() {
+        const statusHeader = document.getElementById('call_status_header');
+        const statusText = document.getElementById('call_status_text');
+        
+        // if (!statusHeader || !statusText) {
+        //     setTimeout(tryDisplay, 100);
+        //     return;
+        // }
+        if (cur_call) {
+            return;
+        }
+        
+        if (status === 'ringing') {
+            // Stop any existing audio first
+            ringingAudio.pause();
+            ringingAudio.currentTime = 0;
+            
+            // Play ringing sound
+            ringingAudio.loop = true;
+            ringingAudio.play().catch(e => console.log('Audio play failed:', e));
+        } else if (status === 'ended') {
+            // Auto hide after 3 seconds
+            ringingAudio.pause();
+
+            setTimeout(() => {
+                hideCallStatus();
+            }, 3000);
+        }
+    }
+    
+    tryDisplay();
+}
+
+function hideCallStatus() {
+    function tryHide() {
+        const statusHeader = document.getElementById('call_status_header');
+        const statusText = document.getElementById('call_status_text');
+        
+        if (!statusHeader || !statusText) {
+            setTimeout(tryHide, 100);
+            return;
+        }
+        
+        statusHeader.style.display = 'none';
+        
+        // Stop ringing sound
+        ringingAudio.pause();
+        ringingAudio.currentTime = 0;
+        
+        statusText.innerText = '';
+    }
+    
+    tryHide();
+}
+
+function startCallTimer() {
+    callStartTime = new Date();
+    const timerElement = document.getElementById('call_timer');
+    if (timerElement) {
+        timerElement.style.display = 'block';
+    }
+    updateCallTimer();
+    callTimerInterval = setInterval(updateCallTimer, 1000);
+}
+
+function stopCallTimer() {
+    if (callTimerInterval) {
+        clearInterval(callTimerInterval);
+        callTimerInterval = null;
+    }
+    // Keep callStartTime so the final time remains displayed
+    // callStartTime = null; // Don't reset this so timer shows final time
+}
+
+function updateCallTimer() {
+    if (!callStartTime) return;
+    
+    const now = new Date();
+    const elapsed = Math.floor((now - callStartTime) / 1000);
+    
+    const hours = Math.floor(elapsed / 3600);
+    const minutes = Math.floor((elapsed % 3600) / 60);
+    const seconds = elapsed % 60;
+    
+    const timerElement = document.getElementById('call_timer');
+    if (timerElement) {
+        timerElement.textContent = 
+            String(hours).padStart(2, '0') + ':' + 
+            String(minutes).padStart(2, '0') + ':' + 
+            String(seconds).padStart(2, '0');
+    }
+}
+
+function resetCallTimer() {
+    stopCallTimer();
+    callStartTime = null; // Now reset it
+    const timerElement = document.getElementById('call_timer');
+    if (timerElement) {
+        timerElement.style.display = 'none';
+        timerElement.textContent = '00:00:00';
+    }
+}
 
 async function loginAgent(username, password) {
   try {
@@ -89,9 +255,10 @@ async function logoutAgent() {
     });
 
     if (!response.ok) {
+        console.log('error logging out agent');
       return null; // Return null for HTTP errors (e.g., 401, 404)
     }
-
+    console.log('agent logged out successfully');
     const data = await response.json();
     return data; // Return the response data
   } catch (error) {
@@ -104,40 +271,6 @@ var dtmf_options = {
   'duration': 100,
   'interToneGap': 100
 };
-
-//http://jsfiddle.net/55Kfu/1506/
-//https://stackoverflow.com/posts/13194087/revisions
-var beep = (function() {
-    var ctxClass = window.audioContext || window.AudioContext || window.AudioContext || window.webkitAudioContext
-    var ctx = new ctxClass();
-    return function(duration, type, finishedCallback) {
-
-        duration = +duration;
-
-        // Only 0-4 are valid types.
-        type = (type % 5) || 0;
-
-        if (typeof finishedCallback != "function") {
-            finishedCallback = function() {};
-        }
-
-        var osc = ctx.createOscillator();
-
-        //osc.type = type;
-        osc.type = "sine";
-
-        osc.connect(ctx.destination);
-        if (osc.noteOn) osc.noteOn(0); // old browsers
-        if (osc.start) osc.start(); // new browsers
-
-        setTimeout(function() {
-            if (osc.noteOff) osc.noteOff(0); // old browsers
-            if (osc.stop) osc.stop(); // new browsers
-            finishedCallback();
-        }, duration);
-
-    };
-})();
 
 function tempAlert(msg,duration)
 {
@@ -155,6 +288,7 @@ function tempAlert(msg,duration)
 
 
 function onCancelled() {
+    ringingAudio.pause();
     audioElement.pause();
     console.log('cancelled');
     $("#isIncomingcall").hide();
@@ -166,6 +300,7 @@ function onCancelled() {
 }
 
 function onTerminated() {
+    ringingAudio.pause();
     audioElement.pause();
     console.log('Onterminated');
     $("#signin").hide();
@@ -184,15 +319,21 @@ function onTerminated() {
     var span = document.getElementById('calling');
     $("#calling_input").val("");
     span.innerText = "...";
+
+    // Stop the call timer
+    stopCallTimer();
 }
 
 function onTerminated2() {
+    ringingAudio.pause();
     console.log('Onterminated2');
     cur_call = null;
     incomingsession = null;
+    stopCallTimer();
 }
 
 function onAccepted() {
+    ringingAudio.pause();
     audioElement.pause();
 
     $("#signin").hide();
@@ -202,6 +343,8 @@ function onAccepted() {
     isOnMute = false;
     $("#mutebtn").removeClass('btn-danger').addClass('btn-warning');
 
+    // Start the call timer
+    startCallTimer();
 }
 
 $("#asknotificationpermission").click(function() {
@@ -372,7 +515,8 @@ $("#checkvmailbtn").click(function() {
     $("#callbtn").click();
 });
 
-$("#gotopanel1").click(function() {
+$("#gotopanel1").click(async function() {
+    await logoutAgent()
     gotopanel = true;
     console.error("GOTOPANEL1");
     window.location.assign('/');
@@ -385,7 +529,8 @@ $("#gotopanel2").click(async function() {
     window.location.assign('/');
 });
 
-$("#gotopanel3").click(function() {
+$("#gotopanel3").click(async function() {
+    await logoutAgent()
     gotopanel = true;
     console.error("GOTOPANEL3");
     window.location.assign('/');
@@ -417,6 +562,7 @@ function handleNotify(r) {
 
 
 $("#anscallbtn").click(function() {
+    ringingAudio.pause();
     audioElement.pause();
     incomingsession.accept({
         media: {
@@ -442,6 +588,8 @@ $("#anscallbtn").click(function() {
     var span = document.getElementById('speakingwith');
     var txt = document.createTextNode(cur_call.remoteIdentity.displayName.toString());
     span.innerText = txt.textContent + " (" + cur_call.remoteIdentity.uri.user.toString() + ")";
+    // var txt = document.createTextNode(callTimerInterval.toString());
+    // span.innerText = txt.textContent;
 
     cur_call.on('accepted', onAccepted.bind(cur_call));
     cur_call.once('bye', onTerminated.bind(cur_call));
@@ -470,6 +618,9 @@ $("#rejcallbtn").click(function() {
 
 
 function handleInvite(s) {
+    // Reset the call timer display when a new invite is received
+    resetCallTimer();
+    
     if (cur_call) {
         s.reject({
             statusCode: '486',
@@ -511,9 +662,9 @@ function handleInvite(s) {
                 'X-Phone-Number': 'phone_number',
                 'X-Customer-Name': 'customer_name',
                 'X-City': 'city',
-                'X-Customer-Segment': 'customer_segment',
-                'X-Month-GMV': 'month_gmv',
-                'X-Overall-GMV': 'overall_gmv',
+                'X-Campaign-Segment': 'customer_segment',
+                'X-Month-Gmv': 'month_gmv',
+                'X-Overall-Gmv': 'overall_gmv',
                 'X-Last-Call-Date': 'last_call_date',
                 'X-Last-Order-Item': 'last_order_item',
                 'X-Last-Order-Amount': 'last_order_amount'
@@ -532,6 +683,8 @@ function handleInvite(s) {
             } else {
                 notifyMe("CALL FROM: " + txt.textContent + " (" + s.remoteIdentity.uri.user.toString() + ")");
             }
+
+            ringingAudio.pause()
 
             if (isNoRing == false) {
                 audioElement.currentTime = 0;
@@ -1017,6 +1170,8 @@ async function init() {
       console.log("Login failed");
       return
     }
+
+    connectAgentWebSocket(agent_id);
 
 
     populateUserRows(userData);

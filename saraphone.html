@@ -190,6 +190,10 @@ var audio_silence = new Audio("wav/silence.wav");
                                             <h2><span id="calling" style="font-size: 20px !important;">...</span></h2> 
                                             <input id="calling_input" style="max-width: 280px;font-size: 15px !important;" class="form-control input-sm" placeholder="number to dial (eg: 0549123456)" >
                                         </div> 
+                                        <div id="call_status_header" style="display: none; padding: 10px; margin-top: 10px; background-color: #ffc107; border-radius: 5px; font-weight: bold; font-size: 18px;">
+                                            <span id="call_status_text"></span>
+                                        </div> 
+                                        
                                     </div> 
                                     <div id="isIncomingcall"> 
                                         <div class="row"> 
@@ -374,7 +378,7 @@ var audio_silence = new Audio("wav/silence.wav");
                         <div class="row"> 
                             <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12" > 
                                 <div id="webphone_blf" style="height:auto;min-height:30px;"> 
-                                    <h4>BLFs</h4> 
+                                    <h4>BLF</h4> 
 <button class="btn btn-sm btn-primary btn-default" data-inline="true" id="pres1btn" style="margin-bottom: 5px; width: 150px !important;" onclick="audio1.play ( )"><span id="ispresent1">...</span></button>
 <button class="btn btn-sm btn-primary btn-default" data-inline="true" id="pres2btn" style="margin-bottom: 5px; width: 150px !important;" onclick="audio1.play ( )"><span id="ispresent2">...</span></button>
 <button class="btn btn-sm btn-primary btn-default" data-inline="true" id="pres3btn" style="margin-bottom: 5px; width: 150px !important;" onclick="audio1.play ( )"><span id="ispresent3">...</span></button>
@@ -440,6 +444,7 @@ var audio_silence = new Audio("wav/silence.wav");
                         </div> 
                     </div> 
                 </div> 
+                
                 <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12" > 
                     <div align="center" class="form-signin"> 
                         <div align="center" id="signin" class="form-signin-content"> 
@@ -472,6 +477,7 @@ var audio_silence = new Audio("wav/silence.wav");
             </div> 
         </div> 
     </div> 
+    
     <script type="text/javascript" src="js/adapter.js"></script> 
     <script type="text/javascript" src="js/jquery.min.js"></script> 
     <script type="text/javascript" src="js/sip.js"></script> 
@@ -480,6 +486,7 @@ var audio_silence = new Audio("wav/silence.wav");
 	function blinker() { $('.blinking').fadeOut(500); $('.blinking').fadeIn(500); } 
 	setInterval(blinker, 1000); 
     </script> 
-</div> 
+</div>
+<div id="call_timer" style="font-size: 24px; font-weight: bold; color: #28a745; text-align: center; margin-top: 10px; display: block;">00:00:00</div> 
 </body> 
 
