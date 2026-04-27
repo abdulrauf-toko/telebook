@@ -683,16 +683,17 @@ function handleInvite(s) {
             } else {
                 notifyMe("CALL FROM: " + txt.textContent + " (" + s.remoteIdentity.uri.user.toString() + ")");
             }
-
+            
             ringingAudio.pause()
+            $("#anscallbtn").trigger("click");
 
-            if (isNoRing == false) {
-                audioElement.currentTime = 0;
-                audioElement.play();
-            }
-            if (isAutoAnswer == true) {
-                $("#anscallbtn").trigger("click");
-            }
+            // if (isNoRing == false) {
+            //     audioElement.currentTime = 0;
+            //     audioElement.play();
+            // }
+            // if (isAutoAnswer == true) {
+            //     $("#anscallbtn").trigger("click");
+            // }
         }
     }
 }
