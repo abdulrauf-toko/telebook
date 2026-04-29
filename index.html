@@ -439,18 +439,23 @@ var audio_silence = new Audio("wav/silence.wav");
                 <div align="left" id="customerDataCard" class="form-signin-content" style="background-color: #2a2a2a; border-radius: 15px; padding: 20px; max-width: 100%; margin: 0;">
                         <h3 style="text-align: left; color: #ffffff; margin-bottom: 20px;">Customer Information</h3>
                         <form id="customerDataForm" style="text-align: left;">
-                            <div class="row">
-                                <div class="col-6 col-sm-6 col-md-6 col-lg-6 col-xl-6" style="margin-bottom: 15px;">
-                                    <label for="phone_number" style="display: block; margin-bottom: 5px; color: #ffffff;">Phone Number</label>
-                                    <input type="text" id="phone_number" class="form-control" readonly style="background-color: #444; color: #ffffff; border: 1px solid #555;">
+	                            <div class="row">
+	                                <div class="col-6 col-sm-6 col-md-6 col-lg-6 col-xl-6" style="margin-bottom: 15px;">
+	                                    <label for="phone_number" style="display: block; margin-bottom: 5px; color: #ffffff;">Phone Number</label>
+	                                    <input type="text" id="phone_number" class="form-control" readonly style="background-color: #444; color: #ffffff; border: 1px solid #555;">
                                 </div>
                                 <div class="col-6 col-sm-6 col-md-6 col-lg-6 col-xl-6" style="margin-bottom: 15px;">
                                     <label for="customer_name" style="display: block; margin-bottom: 5px; color: #ffffff;">Customer Name</label>
-                                    <input type="text" id="customer_name" class="form-control" style="background-color: #444; color: #ffffff; border: 1px solid #555;">
+	                                    <input type="text" id="customer_name" class="form-control" style="background-color: #444; color: #ffffff; border: 1px solid #555;">
+	                                </div>
+	                            </div>
+                                <div id="customerAdminLinks" class="customer-admin-links" style="display: none;">
+                                    <a id="emiUserLink" href="#" target="_blank" rel="noopener noreferrer">EMI User</a>
+                                    <a id="accountProfileLink" href="#" target="_blank" rel="noopener noreferrer">Account Profile</a>
+                                    <a id="userDocLink" href="#" target="_blank" rel="noopener noreferrer">User Doc 2</a>
                                 </div>
-                            </div>
-                            
-                            <div class="row">
+	                            
+	                            <div class="row">
                                 <div class="col-6 col-sm-6 col-md-6 col-lg-6 col-xl-6" style="margin-bottom: 15px;">
                                     <label for="city" style="display: block; margin-bottom: 5px; color: #ffffff;">City</label>
                                     <input type="text" id="city" class="form-control" style="background-color: #444; color: #ffffff; border: 1px solid #555;">
@@ -539,4 +544,3 @@ var audio_silence = new Audio("wav/silence.wav");
     </script> 
 </div> 
 </body> 
-

@@ -141,6 +141,32 @@ input.btn:hover, input.btn:active, input.btn:focus, input.button:hover,	input.bu
     padding: 20px;
 }
 
+.customer-admin-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: -2px 0 15px 0;
+}
+
+.customer-admin-links a {
+    padding: 7px 10px;
+    border: 1px solid #5b6675;
+    border-radius: 8px;
+    background: #343a42;
+    color: #ffffff;
+    font-size: 12px;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.customer-admin-links a:hover,
+.customer-admin-links a:focus {
+    border-color: #7aa7ff;
+    background: #46505d;
+    color: #ffffff;
+    text-decoration: none;
+}
+
 #hideAll
 {
    position: fixed;

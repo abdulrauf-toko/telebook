@@ -179,6 +179,28 @@ function hideCallStatus() {
     tryHide();
 }
 
+function populateCustomerAdminLinks(phoneNumber) {
+    const linksContainer = document.getElementById('customerAdminLinks');
+    const emiUserLink = document.getElementById('emiUserLink');
+    const accountProfileLink = document.getElementById('accountProfileLink');
+    const userDocLink = document.getElementById('userDocLink');
+
+    if (!linksContainer || !emiUserLink || !accountProfileLink || !accountProfile2Link) {
+        return;
+    }
+
+    if (!phoneNumber) {
+        linksContainer.style.display = 'none';
+        return;
+    }
+
+    const encodedPhoneNumber = encodeURIComponent(phoneNumber);
+    emiUserLink.href = 'https://udhaar-api.oscar.pk/admin/telecard/emicampaignuser/?q=' + encodedPhoneNumber + '&o=-9';
+    accountProfileLink.href = 'https://rnp-api.oscar.pk/admin/emi/accountopening/?q=' + encodedPhoneNumber;
+    userDocLink.href = 'https://udhaar-api.oscar.pk/admin/udhaar/userdocs/?q=' + encodedPhoneNumber;
+    linksContainer.style.display = 'flex';
+}
+
 function startCallTimer() {
     callStartTime = new Date();
     const timerElement = document.getElementById('call_timer');
@@ -678,6 +700,7 @@ function handleInvite(s) {
 
                 $(`#${inputId}`).val(value);
             });
+            populateCustomerAdminLinks(callData['X-Phone-Number'] || "");
 
             if (isIOS) {
                 //do nothing
