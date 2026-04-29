@@ -114,18 +114,8 @@ var audio_silence = new Audio("wav/silence.wav");
                                         </div> 
                                         <br/> 
                                         <button class="btn btn-md btn-primary btn-success" data-inline="true" id="loginbtn">Login</button> 
+                                        <div id="loginMessage" class="customer-form-message" style="display: none; max-width: 380px; margin-left: auto; margin-right: auto;"></div>
                                         <br/> 
-                                        <div class="row"> 
-                                            <br/> 
-                                            <button class="btn btn-md btn-primary btn-danger" data-inline="true" id="gotopanel2" style="margin-bottom: 0px; width: 160px !important;" >Back to Login</button> 
-                                            <div align="center" class="inner" style="color: #808080"> 
-                                                <br/> 
-                                                <i>SaraPhone WebRTC</i> 
-                                                <p>2020 
-                                                <br/>Giovanni Maruzzelli - OpenTelecom.IT</p> 
-                                                <br/> 
-                                            </div> 
-                                        </div> 
                                     </div> 
                                 </div> 
                             </div> 
@@ -237,18 +227,6 @@ var audio_silence = new Audio("wav/silence.wav");
                                                 &nbsp; 
                                             </div> 
                                         </div> 
-                                        <div class="row"> 
-                                            <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12" style="color: #808080"> 
-                                                <br/> 
-                                                <i>SaraPhone WebRTC</i> 
-                                            </div> 
-                                        </div> 
-                                        <div class="row"> 
-                                            <div align="center" class="inner" style="color: #808080"> 
-                                                <p>2020 
-                                                <br/>Giovanni Maruzzelli - OpenTelecom.IT</p> 
-                                           </div> 
-                                       </div> 
                                     </div> 
                                 </div> 
                             </div> 
@@ -493,6 +471,35 @@ var audio_silence = new Audio("wav/silence.wav");
                                     <input type="text" id="last_order_amount" class="form-control" readonly style="background-color: #444; color: #ffffff; border: 1px solid #555;">
                                 </div>
                             </div>
+
+                            <div style="border-top: 1px solid #444; margin-top: 5px; padding-top: 15px;">
+                                <div class="row">
+                                    <div class="col-4 col-sm-4 col-md-4 col-lg-4 col-xl-4" style="margin-bottom: 15px;">
+                                        <label for="followup_phone_number" style="display: block; margin-bottom: 5px; color: #ffffff;">Phone Number</label>
+                                        <input type="text" id="followup_phone_number" class="form-control" style="background-color: #444; color: #ffffff; border: 1px solid #555;">
+                                    </div>
+                                    <div class="col-4 col-sm-4 col-md-4 col-lg-4 col-xl-4" style="margin-bottom: 15px;">
+                                        <label for="followup_date" style="display: block; margin-bottom: 5px; color: #ffffff;">Follow Up Date</label>
+                                        <input type="date" id="followup_date" class="form-control" style="background-color: #444; color: #ffffff; border: 1px solid #555;">
+                                    </div>
+                                    <div class="col-4 col-sm-4 col-md-4 col-lg-4 col-xl-4" style="margin-bottom: 15px;">
+                                        <label for="followup_time" style="display: block; margin-bottom: 5px; color: #ffffff;">Time</label>
+                                        <input type="time" id="followup_time" class="form-control" style="background-color: #444; color: #ffffff; border: 1px solid #555;">
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12" style="margin-bottom: 15px;">
+                                        <label for="followup_comments" style="display: block; margin-bottom: 5px; color: #ffffff;">Comments</label>
+                                        <textarea id="followup_comments" class="form-control" rows="2" style="resize: vertical; background-color: #444; color: #ffffff; border: 1px solid #555;"></textarea>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12" style="text-align: left;">
+                                        <button type="submit" id="customerDataSubmitBtn" class="btn btn-sm btn-primary btn-success" style="width: 100px;">Submit</button>
+                                        <div id="customerFormMessage" class="customer-form-message" style="display: none;"></div>
+                                    </div>
+                                </div>
+                            </div>
                             
                             <!-- <div class="row" style="margin-bottom: 20px;">
                                 <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
@@ -527,6 +534,11 @@ var audio_silence = new Audio("wav/silence.wav");
                         </form>
                     </div>
             </div>
+            <div class="col-6 col-sm-6 col-md-6 col-lg-6 col-xl-6" style="padding-left: 10px; padding-right: 10px;">
+                <div align="left" id="campaignSwitcher" class="campaign-switcher" style="display: none;">
+                    <div id="campaignButtons" class="campaign-buttons"></div>
+                </div>
+            </div>
 </div>
 
     <script type="text/javascript" src="js/adapter.js"></script> 
@@ -539,4 +551,3 @@ var audio_silence = new Audio("wav/silence.wav");
     </script> 
 </div> 
 </body> 
-

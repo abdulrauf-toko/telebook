@@ -57,8 +57,11 @@ var globalPassword = "";
 var ringingAudio = new Audio('mp3/classical_tone.mp3');
 var callStartTime = null;
 var callTimerInterval = null;
+var activeCampaignId = null;
+var currentCampaigns = [];
+var currentAgentId = null;
 
-const BACKEND_URL = "https://192.168.0.25/api" 
+const BACKEND_URL = "http://localhost:8005" 
 const WS_URL = "wss://192.168.0.25/ws/agent";
 
 let socket = null;
@@ -232,17 +235,37 @@ async function loginAgent(username, password) {
       },
       body: JSON.stringify({ username, password }),
     });
+    const data = await response.json().catch(function() {
+      return {};
+    });
 
     if (!response.ok) {
-      return null; // Return null for HTTP errors (e.g., 401, 404)
+      return {
+        success: false,
+        message: data.message || 'Login failed. Please try again.'
+      };
     }
 
-    const data = await response.json();
-    return data; // Return the response data (e.g., { extension: "101" })
+    return data;
   } catch (error) {
     console.error('Login error:', error);
-    return null; // Return null for network errors
+    return {
+      success: false,
+      message: 'Network error while logging in.'
+    };
   }
+}
+
+function showLoginMessage(success, message) {
+    const messageEl = document.getElementById('loginMessage');
+
+    if (!messageEl) {
+        return;
+    }
+
+    messageEl.textContent = message || (success ? 'Login successful.' : 'Login failed.');
+    messageEl.className = 'customer-form-message ' + (success ? 'is-success' : 'is-error');
+    messageEl.style.display = 'block';
 }
 
 async function logoutAgent() {
@@ -265,6 +288,166 @@ async function logoutAgent() {
     console.error('Logout error:', error);
     return null; // Return null for network errors
   }
+}
+
+async function activateCampaign(campaign) {
+  try {
+    const response = await fetch(`${BACKEND_URL}/api/dialer/agent/campaign/activate/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        id: campaign.id,
+        campaign_id: campaign.campaign_id,
+        agent_id: currentAgentId
+      }),
+    });
+
+    if (!response.ok) {
+      return null;
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Campaign activation error:', error);
+    return null;
+  }
+}
+
+async function submitCustomerForm(formData) {
+  try {
+    const response = await fetch(`${BACKEND_URL}/api/dialer/form-submission/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(formData),
+    });
+    const data = await response.json().catch(function() {
+      return {};
+    });
+
+    if (!response.ok) {
+      return {
+        success: false,
+        message: data.message || 'Could not submit form. Please try again.'
+      };
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Form submission error:', error);
+    return {
+      success: false,
+      message: 'Network error while submitting form.'
+    };
+  }
+}
+
+function showCustomerFormMessage(success, message) {
+    const messageEl = document.getElementById('customerFormMessage');
+
+    if (!messageEl) {
+        return;
+    }
+
+    messageEl.textContent = message || (success ? 'Form submitted successfully.' : 'Could not submit form.');
+    messageEl.className = 'customer-form-message ' + (success ? 'is-success' : 'is-error');
+    messageEl.style.display = 'block';
+}
+
+function getCampaignKey(campaign) {
+    return campaign && (campaign.id || campaign.campaign_id);
+}
+
+function getActiveCampaignKey(campaigns) {
+    const activeCampaign = campaigns.find(function(campaign) {
+        return campaign && campaign.active === true;
+    });
+
+    return getCampaignKey(activeCampaign);
+}
+
+function renderCampaignButtons(campaigns) {
+    const switcher = document.getElementById('campaignSwitcher');
+    const buttons = document.getElementById('campaignButtons');
+
+    if (!switcher || !buttons) {
+        return;
+    }
+
+    buttons.innerHTML = '';
+    currentCampaigns = Array.isArray(campaigns) ? campaigns : [];
+    activeCampaignId = getActiveCampaignKey(currentCampaigns);
+
+    if (!currentCampaigns.length) {
+        switcher.style.display = 'none';
+        return;
+    }
+
+    currentCampaigns.forEach(function(campaign) {
+        const button = document.createElement('button');
+        const campaignKey = getCampaignKey(campaign);
+        const title = campaign.segment || campaign.campaign_id || ('Campaign ' + campaign.id);
+        const count = campaign.count !== undefined && campaign.count !== null ? campaign.count + ' leads' : '';
+        const meta = [campaign.campaign_id, count].filter(Boolean).join(' / ');
+
+        button.type = 'button';
+        button.className = 'campaign-button' + (campaignKey === activeCampaignId ? ' is-active' : '');
+        button.dataset.campaignKey = campaignKey;
+        button.title = meta ? title + ' - ' + meta : title;
+        button.innerHTML = '<span class="campaign-button-title"></span><span class="campaign-button-meta"></span>';
+        button.querySelector('.campaign-button-title').textContent = title;
+        button.querySelector('.campaign-button-meta').textContent = meta || 'Campaign';
+
+        button.addEventListener('click', function() {
+            setActiveCampaign(campaign, button);
+        });
+
+        buttons.appendChild(button);
+    });
+
+    switcher.style.display = 'block';
+}
+
+async function setActiveCampaign(campaign, button) {
+    const campaignKey = getCampaignKey(campaign);
+
+    if (!campaignKey || campaignKey === activeCampaignId) {
+        return;
+    }
+
+    if (button) {
+        button.classList.add('is-loading');
+        button.disabled = true;
+    }
+
+    const result = await activateCampaign(campaign);
+
+    if (!result) {
+        if (button) {
+            button.classList.remove('is-loading');
+            button.disabled = false;
+        }
+        alert('Could not activate campaign. Please try again.');
+        return;
+    }
+
+    activeCampaignId = campaignKey;
+    currentCampaigns = currentCampaigns.map(function(item) {
+        const isActive = getCampaignKey(item) === campaignKey;
+        return Object.assign({}, item, { active: isActive });
+    });
+
+    if (Array.isArray(result.campaigns)) {
+        currentCampaigns = result.campaigns.map(function(item) {
+            const isClickedCampaign = getCampaignKey(item) === campaignKey;
+            return Object.assign({}, item, { active: isClickedCampaign || item.active === true });
+        });
+    }
+
+    renderCampaignButtons(currentCampaigns);
 }
 
 var dtmf_options = {
@@ -677,6 +860,7 @@ function handleInvite(s) {
 
                 $(`#${inputId}`).val(value);
             });
+            $("#followup_phone_number").val(callData['X-Phone-Number'] || "");
 
             if (isIOS) {
                 //do nothing
@@ -1159,21 +1343,27 @@ async function init() {
     var fs_password;
     var agent_id;
     var userData;
+    var campaigns;
 
+    $("#loginMessage").hide();
     const result = await loginAgent(login, password);
-    if (result) {
+    if (result && result.success === true) {
+      showLoginMessage(true, result.message);
       extension = result.extension;
     //   var uri = extension + "@" + nameDomain;
       fs_password = result.password;
       agent_id = result.id;  
+      currentAgentId = agent_id;
       userData = result.agents_info;
+      campaigns = result.campaigns;
     } else {
-      console.log("Login failed");
+      showLoginMessage(false, result && result.message);
       return
     }
 
     connectAgentWebSocket(agent_id);
 
+    renderCampaignButtons(campaigns);
 
     populateUserRows(userData);
     populatePresenceSpans(userData)
@@ -1446,27 +1636,47 @@ function setupCacheHandler() {
     }
 }
 // Customer Data Card handlers
-$("#customerDataForm").submit(function(e) {
-    e.preventDefault();
-    // Handle form submission here
-    var formData = {
-        phone_number: document.getElementById("phone_number").value,
-        customer_name: document.getElementById("customer_name").value,
-        city: document.getElementById("city").value,
-        customer_segment: document.getElementById("customer_segment").value,
-        month_gmv: document.getElementById("month_gmv").value,
-        overall_gmv: document.getElementById("overall_gmv").value,
-        last_call_date: document.getElementById("last_call_date").value,
-        last_order_date: document.getElementById("last_order_date").value,
-        last_order_item: document.getElementById("last_order_item").value,
-        last_order_amount: document.getElementById("last_order_amount").value,
-        active_shop: document.getElementById("active_shop").checked,
-        inactive_shop: document.getElementById("inactive_shop").checked,
-        personal_use: document.getElementById("personal_use").checked,
-        testing_purpose: document.getElementById("testing_purpose").checked
-    };
-    console.log("Customer Data Form Submitted:", formData);
-    alert("Form submitted successfully!");
+$("#customerDataForm").submit(async function(e) {
+	e.preventDefault();
+	const submitButton = document.getElementById("customerDataSubmitBtn");
+	const messageEl = document.getElementById("customerFormMessage");
+	var formData = {
+		phone_number: document.getElementById("phone_number").value,
+		customer_name: document.getElementById("customer_name").value,
+		city: document.getElementById("city").value,
+		customer_segment: document.getElementById("customer_segment").value,
+		month_gmv: document.getElementById("month_gmv").value,
+		overall_gmv: document.getElementById("overall_gmv").value,
+		last_call_date: document.getElementById("last_call_date").value,
+		last_order_date: document.getElementById("last_order_date").value,
+		last_order_item: document.getElementById("last_order_item").value,
+		last_order_amount: document.getElementById("last_order_amount").value,
+		followup_phone_number: document.getElementById("followup_phone_number").value,
+		followup_date: document.getElementById("followup_date").value,
+		followup_time: document.getElementById("followup_time").value,
+		followup_comments: document.getElementById("followup_comments").value
+	};
+
+	if (messageEl) {
+		messageEl.style.display = 'none';
+	}
+	if (submitButton) {
+		submitButton.disabled = true;
+		submitButton.textContent = 'Saving...';
+	}
+
+	const result = await submitCustomerForm(formData);
+	const success = result && result.success === true;
+
+	showCustomerFormMessage(success, result && result.message);
+	if (success) {
+		document.getElementById("customerDataForm").reset();
+	}
+
+	if (submitButton) {
+		submitButton.disabled = false;
+		submitButton.textContent = 'Submit';
+	}
 });
 
 $("#closeCustomerDataBtn").click(function() {
