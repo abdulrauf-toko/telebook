@@ -61,6 +61,14 @@ var activeCampaignId = null;
 var currentCampaigns = [];
 var currentAgentId = null;
 
+function stopRingingAudio() {
+    ringingAudio.pause();
+    ringingAudio.loop = false;
+    ringingAudio.currentTime = 0;
+    audioElement.pause();
+    audioElement.currentTime = 0;
+}
+
 const BACKEND_URL = "http://localhost:8005" 
 const WS_URL = "wss://192.168.0.25/ws/agent";
 
@@ -137,7 +145,7 @@ function displayCallStatus(status) {
         
         if (status === 'ringing') {
             // Stop any existing audio first
-            ringingAudio.pause();
+            stopRingingAudio();
             ringingAudio.currentTime = 0;
             
             // Play ringing sound
@@ -145,7 +153,7 @@ function displayCallStatus(status) {
             ringingAudio.play().catch(e => console.log('Audio play failed:', e));
         } else if (status === 'ended') {
             // Auto hide after 3 seconds
-            ringingAudio.pause();
+            stopRingingAudio();
 
             setTimeout(() => {
                 hideCallStatus();
@@ -158,24 +166,42 @@ function displayCallStatus(status) {
 
 function hideCallStatus() {
     function tryHide() {
+        stopRingingAudio();
+
         const statusHeader = document.getElementById('call_status_header');
         const statusText = document.getElementById('call_status_text');
         
         if (!statusHeader || !statusText) {
-            setTimeout(tryHide, 100);
             return;
         }
         
         statusHeader.style.display = 'none';
-        
-        // Stop ringing sound
-        ringingAudio.pause();
-        ringingAudio.currentTime = 0;
-        
         statusText.innerText = '';
     }
     
     tryHide();
+}
+
+function populateCustomerAdminLinks(phoneNumber) {
+    const linksContainer = document.getElementById('customerAdminLinks');
+    const emiUserLink = document.getElementById('emiUserLink');
+    const accountProfileLink = document.getElementById('accountProfileLink');
+    const userDocLink = document.getElementById('userDocLink');
+
+    if (!linksContainer || !emiUserLink || !accountProfileLink || !userDocLink) {
+        return;
+    }
+
+    if (!phoneNumber) {
+        linksContainer.style.display = 'none';
+        return;
+    }
+
+    const encodedPhoneNumber = encodeURIComponent(phoneNumber);
+    emiUserLink.href = 'https://udhaar-api.oscar.pk/admin/telecard/emicampaignuser/?q=' + encodedPhoneNumber + '&o=-9';
+    accountProfileLink.href = 'https://rnp-api.oscar.pk/admin/emi/accountopening/?q=' + encodedPhoneNumber;
+    userDocLink.href = 'https://udhaar-api.oscar.pk/admin/udhaar/userdocs/?q=' + encodedPhoneNumber;
+    linksContainer.style.display = 'flex';
 }
 
 function startCallTimer() {
@@ -471,8 +497,7 @@ function tempAlert(msg,duration)
 
 
 function onCancelled() {
-    ringingAudio.pause();
-    audioElement.pause();
+    stopRingingAudio();
     console.log('cancelled');
     $("#isIncomingcall").hide();
     $("#isNotIncomingcall").show();
@@ -483,8 +508,7 @@ function onCancelled() {
 }
 
 function onTerminated() {
-    ringingAudio.pause();
-    audioElement.pause();
+    stopRingingAudio();
     console.log('Onterminated');
     $("#signin").hide();
     $("#dial").show();
@@ -508,7 +532,7 @@ function onTerminated() {
 }
 
 function onTerminated2() {
-    ringingAudio.pause();
+    stopRingingAudio();
     console.log('Onterminated2');
     cur_call = null;
     incomingsession = null;
@@ -516,8 +540,7 @@ function onTerminated2() {
 }
 
 function onAccepted() {
-    ringingAudio.pause();
-    audioElement.pause();
+    stopRingingAudio();
 
     $("#signin").hide();
     $("#dial").hide();
@@ -745,8 +768,8 @@ function handleNotify(r) {
 
 
 $("#anscallbtn").click(function() {
-    ringingAudio.pause();
-    audioElement.pause();
+    stopRingingAudio();
+    cur_call = incomingsession;
     incomingsession.accept({
         media: {
             constraints: {
@@ -767,7 +790,6 @@ $("#anscallbtn").click(function() {
 
     $("#isIncomingcall").hide();
     $("#isNotIncomingcall").show();
-    cur_call = incomingsession;
     var span = document.getElementById('speakingwith');
     var txt = document.createTextNode(cur_call.remoteIdentity.displayName.toString());
     span.innerText = txt.textContent + " (" + cur_call.remoteIdentity.uri.user.toString() + ")";
@@ -783,7 +805,7 @@ $("#anscallbtn").click(function() {
 
 
 $("#rejcallbtn").click(function() {
-    audioElement.pause();
+    stopRingingAudio();
     incomingsession.reject({
         statusCode: '486',
         reasonPhrase: 'Busy Here 1'
@@ -803,6 +825,7 @@ $("#rejcallbtn").click(function() {
 function handleInvite(s) {
     // Reset the call timer display when a new invite is received
     resetCallTimer();
+    stopRingingAudio();
     
     if (cur_call) {
         s.reject({
@@ -861,6 +884,7 @@ function handleInvite(s) {
                 $(`#${inputId}`).val(value);
             });
             $("#followup_phone_number").val(callData['X-Phone-Number'] || "");
+            populateCustomerAdminLinks(callData['X-Phone-Number'] || "");
 
             if (isIOS) {
                 //do nothing
@@ -868,7 +892,6 @@ function handleInvite(s) {
                 notifyMe("CALL FROM: " + txt.textContent + " (" + s.remoteIdentity.uri.user.toString() + ")");
             }
             
-            ringingAudio.pause()
             $("#anscallbtn").trigger("click");
 
             // if (isNoRing == false) {
