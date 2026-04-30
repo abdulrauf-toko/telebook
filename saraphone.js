@@ -185,7 +185,7 @@ function populateCustomerAdminLinks(phoneNumber) {
     const accountProfileLink = document.getElementById('accountProfileLink');
     const userDocLink = document.getElementById('userDocLink');
 
-    if (!linksContainer || !emiUserLink || !accountProfileLink || !accountProfile2Link) {
+    if (!linksContainer || !emiUserLink || !accountProfileLink || !userDocLink) {
         return;
     }
 
